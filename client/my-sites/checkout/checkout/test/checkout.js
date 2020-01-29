@@ -77,6 +77,7 @@ describe( 'Checkout', () => {
 		},
 		setHeaderText: identity,
 		clearPurchases: identity,
+		fetchReceiptCompleted: identity,
 	};
 
 	beforeAll( () => {
@@ -146,8 +147,12 @@ describe( 'Checkout', () => {
 		expect( wrapper.find( 'Localized(PendingPaymentBlocker)' ) ).toHaveLength( 1 );
 	} );
 
-	describe( 'provides a redirect function to its children that', () => {
+	describe( 'provides a handleCheckoutCompleteRedirect function to its children that', () => {
 		let container;
+		const Redirector = ( { handleCheckoutCompleteRedirect } ) => {
+			handleCheckoutCompleteRedirect();
+			return null;
+		};
 
 		beforeEach( () => {
 			container = document.createElement( 'div' );
@@ -158,14 +163,8 @@ describe( 'Checkout', () => {
 			document.body.removeChild( container );
 		} );
 
-		it( 'that redirects to the root page when no site is set', async () => {
+		it( 'redirects to the root page when no site is set', async () => {
 			const performRedirectTo = jest.fn();
-
-			const Redirector = ( { handleCheckoutCompleteRedirect } ) => {
-				handleCheckoutCompleteRedirect();
-				return null;
-			};
-
 			await act( async () => {
 				render(
 					<Checkout { ...defaultProps } performRedirectTo={ performRedirectTo }>
@@ -175,6 +174,85 @@ describe( 'Checkout', () => {
 				);
 			} );
 			expect( performRedirectTo ).toHaveBeenCalledWith( '/' );
+		} );
+
+		it( 'redirects to the thank-you page with a purchase id when a site and purchaseId is set', async () => {
+			const performRedirectTo = jest.fn();
+			await act( async () => {
+				render(
+					<Checkout
+						{ ...defaultProps }
+						selectedSiteSlug={ 'foo.bar' }
+						purchaseId={ '1234abcd' }
+						performRedirectTo={ performRedirectTo }
+					>
+						<Redirector />
+					</Checkout>,
+					container
+				);
+			} );
+			expect( performRedirectTo ).toHaveBeenCalledWith( '/checkout/thank-you/foo.bar/1234abcd' );
+		} );
+
+		it( 'redirects to the thank-you page with a receipt id when a site and transaction receipt_id is set', async () => {
+			const performRedirectTo = jest.fn();
+			const transaction = {
+				step: { data: { receipt_id: '1234abcd', purchases: {}, failed_purchases: {} } },
+			};
+			await act( async () => {
+				render(
+					<Checkout
+						{ ...defaultProps }
+						selectedSiteSlug={ 'foo.bar' }
+						transaction={ transaction }
+						performRedirectTo={ performRedirectTo }
+					>
+						<Redirector />
+					</Checkout>,
+					container
+				);
+			} );
+			expect( performRedirectTo ).toHaveBeenCalledWith( '/checkout/thank-you/foo.bar/1234abcd' );
+		} );
+
+		it( 'redirects to the thank-you page with a order id when a site and transaction orderId is set', async () => {
+			const performRedirectTo = jest.fn();
+			const transaction = {
+				step: { data: { orderId: '1234abcd', purchases: {}, failed_purchases: {} } },
+			};
+			await act( async () => {
+				render(
+					<Checkout
+						{ ...defaultProps }
+						selectedSiteSlug={ 'foo.bar' }
+						transaction={ transaction }
+						performRedirectTo={ performRedirectTo }
+					>
+						<Redirector />
+					</Checkout>,
+					container
+				);
+			} );
+			expect( performRedirectTo ).toHaveBeenCalledWith( '/checkout/thank-you/foo.bar/1234abcd' );
+		} );
+
+		it( 'redirects to the thank-you page with a placeholder receiptId with a site when the cart is not empty but there is no receipt id', async () => {
+			const performRedirectTo = jest.fn();
+			const cart = { products: [ { id: 'something' } ] };
+			await act( async () => {
+				render(
+					<Checkout
+						{ ...defaultProps }
+						selectedSiteSlug={ 'foo.bar' }
+						cart={ cart }
+						performRedirectTo={ performRedirectTo }
+					>
+						<Redirector />
+					</Checkout>,
+					container
+				);
+			} );
+			expect( performRedirectTo ).toHaveBeenCalledWith( '/checkout/thank-you/foo.bar/:receiptId' );
 		} );
 	} );
 } );
