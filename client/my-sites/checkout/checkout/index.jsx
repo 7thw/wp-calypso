@@ -1036,11 +1036,11 @@ function getFallbackDestination( {
 		const isJetpackProduct = product && includes( JETPACK_BACKUP_PRODUCTS, product );
 		// If we just purchased a Jetpack product, redirect to the my plans page.
 		if ( isJetpackNotAtomic && isJetpackProduct ) {
-			return `/plans/my-plan/${ selectedSiteSlug }?thank-you&product=${ product }`;
+			return `/plans/my-plan/${ selectedSiteSlug }?thank-you=true&product=${ product }`;
 		}
 		// If we just purchased a Jetpack plan (not a Jetpack product), redirect to the Jetpack onboarding plugin install flow.
 		if ( isJetpackNotAtomic ) {
-			return `/plans/my-plan/${ selectedSiteSlug }?thank-you&install=all`;
+			return `/plans/my-plan/${ selectedSiteSlug }?thank-you=true&install=all`;
 		}
 
 		return selectedFeature && isValidFeatureKey( selectedFeature )
