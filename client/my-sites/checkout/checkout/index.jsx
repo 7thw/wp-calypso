@@ -112,6 +112,7 @@ export class Checkout extends React.Component {
 		loadTrackingTool: PropTypes.func.isRequired,
 		setHeaderText: PropTypes.func.isRequired,
 		clearPurchases: PropTypes.func.isRequired,
+		fetchReceiptCompleted: PropTypes.func.isRequired,
 		performRedirectTo: PropTypes.func,
 		performRedirectAndReplaceUrlTo: PropTypes.func,
 	};
