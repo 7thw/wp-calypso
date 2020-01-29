@@ -407,5 +407,89 @@ describe( 'Checkout', () => {
 				'/plans/my-plan/foo.bar?thank-you=true&install=all'
 			);
 		} );
+
+		it( 'redirects to the plans page with thank-you query string and jetpack onboarding if there is a non-atomic jetpack plan even if there is a feature', async () => {
+			const performRedirectTo = jest.fn();
+			await act( async () => {
+				render(
+					<Checkout
+						{ ...defaultProps }
+						selectedSiteSlug={ 'foo.bar' }
+						purchaseId={ '1234abcd' }
+						selectedFeature="all-free-features"
+						isJetpackNotAtomic={ true }
+						performRedirectTo={ performRedirectTo }
+					>
+						<Redirector />
+					</Checkout>,
+					container
+				);
+			} );
+			expect( performRedirectTo ).toHaveBeenCalledWith(
+				'/plans/my-plan/foo.bar?thank-you=true&install=all'
+			);
+		} );
+
+		it( 'redirects to internal redirectTo url if set', async () => {
+			const performRedirectTo = jest.fn();
+			await act( async () => {
+				render(
+					<Checkout
+						{ ...defaultProps }
+						selectedSiteSlug={ 'foo.bar' }
+						redirectTo={ '/foo/bar' }
+						performRedirectTo={ performRedirectTo }
+					>
+						<Redirector />
+					</Checkout>,
+					container
+				);
+			} );
+			expect( performRedirectTo ).toHaveBeenCalledWith( '/foo/bar' );
+		} );
+
+		it( 'redirects to the root url if redirectTo does not start with admin_url for site', async () => {
+			const performRedirectTo = jest.fn();
+			const adminUrl = 'https://my.site/wp-admin/';
+			const redirectTo = 'https://other.site/post.php?post=515';
+			await act( async () => {
+				render(
+					<Checkout
+						{ ...defaultProps }
+						selectedSiteSlug={ 'foo.bar' }
+						selectedSite={ { options: { admin_url: adminUrl } } }
+						redirectTo={ redirectTo }
+						performRedirectTo={ performRedirectTo }
+					>
+						<Redirector />
+					</Checkout>,
+					container
+				);
+			} );
+			expect( performRedirectTo ).toHaveBeenCalledWith( '/' );
+		} );
+
+		it( 'redirects to external redirectTo url if it starts with admin_url for site', async () => {
+			const performRedirectTo = jest.fn();
+			const adminUrl = 'https://my.site/wp-admin/';
+			const redirectTo = adminUrl + 'post.php?post=515';
+			await act( async () => {
+				render(
+					<Checkout
+						{ ...defaultProps }
+						selectedSiteSlug={ 'foo.bar' }
+						selectedSite={ { options: { admin_url: adminUrl } } }
+						redirectTo={ redirectTo }
+						performRedirectTo={ performRedirectTo }
+					>
+						<Redirector />
+					</Checkout>,
+					container
+				);
+			} );
+			expect( performRedirectTo ).toHaveBeenCalledWith(
+				redirectTo + '&action=edit&plan_upgraded=1'
+			);
+		} );
 	} );
 } );
