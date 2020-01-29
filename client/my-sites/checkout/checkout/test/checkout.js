@@ -15,6 +15,9 @@ import { identity } from 'lodash';
 import { Checkout } from '../';
 import { hasPendingPayment } from 'lib/cart-values';
 import { isEnabled } from 'config';
+import '@testing-library/jest-dom/extend-expect';
+import { render } from '@testing-library/react';
+import { act } from 'react-dom/test-utils';
 
 jest.mock( 'lib/transaction/actions', () => ( {
 	resetTransaction: jest.fn(),
@@ -72,6 +75,8 @@ describe( 'Checkout', () => {
 		transaction: {
 			step: {},
 		},
+		setHeaderText: identity,
+		clearPurchases: identity,
 	};
 
 	beforeAll( () => {
@@ -139,5 +144,37 @@ describe( 'Checkout', () => {
 		} );
 
 		expect( wrapper.find( 'Localized(PendingPaymentBlocker)' ) ).toHaveLength( 1 );
+	} );
+
+	describe( 'provides a redirect function to its children that', () => {
+		let container;
+
+		beforeEach( () => {
+			container = document.createElement( 'div' );
+			document.body.appendChild( container );
+		} );
+
+		afterEach( () => {
+			document.body.removeChild( container );
+		} );
+
+		it( 'that redirects to the root page when no site is set', async () => {
+			const performRedirectTo = jest.fn();
+
+			const Redirector = ( { handleCheckoutCompleteRedirect } ) => {
+				handleCheckoutCompleteRedirect();
+				return null;
+			};
+
+			await act( async () => {
+				render(
+					<Checkout { ...defaultProps } performRedirectTo={ performRedirectTo }>
+						<Redirector />
+					</Checkout>,
+					container
+				);
+			} );
+			expect( performRedirectTo ).toHaveBeenCalledWith( '/' );
+		} );
 	} );
 } );
