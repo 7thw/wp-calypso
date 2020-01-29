@@ -364,5 +364,48 @@ describe( 'Checkout', () => {
 			} );
 			expect( performRedirectTo ).toHaveBeenCalledWith( '/checkout/thank-you/foo.bar/1234abcd' );
 		} );
+
+		it( 'redirects to the plans page with thank-you query string if there is a non-atomic jetpack product', async () => {
+			const performRedirectTo = jest.fn();
+			await act( async () => {
+				render(
+					<Checkout
+						{ ...defaultProps }
+						selectedSiteSlug={ 'foo.bar' }
+						purchaseId={ '1234abcd' }
+						isJetpackNotAtomic={ true }
+						product="jetpack_backup_daily"
+						performRedirectTo={ performRedirectTo }
+					>
+						<Redirector />
+					</Checkout>,
+					container
+				);
+			} );
+			expect( performRedirectTo ).toHaveBeenCalledWith(
+				'/plans/my-plan/foo.bar?thank-you=true&product=jetpack_backup_daily'
+			);
+		} );
+
+		it( 'redirects to the plans page with thank-you query string and jetpack onboarding if there is a non-atomic jetpack plan', async () => {
+			const performRedirectTo = jest.fn();
+			await act( async () => {
+				render(
+					<Checkout
+						{ ...defaultProps }
+						selectedSiteSlug={ 'foo.bar' }
+						purchaseId={ '1234abcd' }
+						isJetpackNotAtomic={ true }
+						performRedirectTo={ performRedirectTo }
+					>
+						<Redirector />
+					</Checkout>,
+					container
+				);
+			} );
+			expect( performRedirectTo ).toHaveBeenCalledWith(
+				'/plans/my-plan/foo.bar?thank-you=true&install=all'
+			);
+		} );
 	} );
 } );
