@@ -254,5 +254,115 @@ describe( 'Checkout', () => {
 			} );
 			expect( performRedirectTo ).toHaveBeenCalledWith( '/checkout/thank-you/foo.bar/:receiptId' );
 		} );
+
+		it( 'redirects to the thank-you page with a feature when a site, a purchase id, and a valid feature is set', async () => {
+			const performRedirectTo = jest.fn();
+			await act( async () => {
+				render(
+					<Checkout
+						{ ...defaultProps }
+						selectedSiteSlug={ 'foo.bar' }
+						selectedFeature="all-free-features"
+						purchaseId={ '1234abcd' }
+						performRedirectTo={ performRedirectTo }
+					>
+						<Redirector />
+					</Checkout>,
+					container
+				);
+			} );
+			expect( performRedirectTo ).toHaveBeenCalledWith(
+				'/checkout/thank-you/features/all-free-features/foo.bar/1234abcd'
+			);
+		} );
+
+		it( 'redirects to the thank-you page with a feature when a site, a receipt id, and a valid feature is set', async () => {
+			const performRedirectTo = jest.fn();
+			const transaction = {
+				step: { data: { receipt_id: '1234abcd', purchases: {}, failed_purchases: {} } },
+			};
+			await act( async () => {
+				render(
+					<Checkout
+						{ ...defaultProps }
+						selectedSiteSlug={ 'foo.bar' }
+						selectedFeature="all-free-features"
+						transaction={ transaction }
+						performRedirectTo={ performRedirectTo }
+					>
+						<Redirector />
+					</Checkout>,
+					container
+				);
+			} );
+			expect( performRedirectTo ).toHaveBeenCalledWith(
+				'/checkout/thank-you/features/all-free-features/foo.bar/1234abcd'
+			);
+		} );
+
+		it( 'redirects to the thank-you page with a feature when a site, an order id, and a valid feature is set', async () => {
+			const performRedirectTo = jest.fn();
+			const transaction = {
+				step: { data: { orderId: '1234abcd', purchases: {}, failed_purchases: {} } },
+			};
+			await act( async () => {
+				render(
+					<Checkout
+						{ ...defaultProps }
+						selectedSiteSlug={ 'foo.bar' }
+						selectedFeature="all-free-features"
+						transaction={ transaction }
+						performRedirectTo={ performRedirectTo }
+					>
+						<Redirector />
+					</Checkout>,
+					container
+				);
+			} );
+			expect( performRedirectTo ).toHaveBeenCalledWith(
+				'/checkout/thank-you/features/all-free-features/foo.bar/1234abcd'
+			);
+		} );
+
+		it( 'redirects to the thank-you page with a feature when a site and a valid feature is set with no receipt but the cart is not empty', async () => {
+			const performRedirectTo = jest.fn();
+			const cart = { products: [ { id: 'something' } ] };
+			await act( async () => {
+				render(
+					<Checkout
+						{ ...defaultProps }
+						selectedSiteSlug={ 'foo.bar' }
+						selectedFeature="all-free-features"
+						cart={ cart }
+						performRedirectTo={ performRedirectTo }
+					>
+						<Redirector />
+					</Checkout>,
+					container
+				);
+			} );
+			expect( performRedirectTo ).toHaveBeenCalledWith(
+				'/checkout/thank-you/features/all-free-features/foo.bar/:receiptId'
+			);
+		} );
+
+		it( 'redirects to the thank-you page without a feature when a site, a purchase id, and an invalid feature is set', async () => {
+			const performRedirectTo = jest.fn();
+			await act( async () => {
+				render(
+					<Checkout
+						{ ...defaultProps }
+						selectedSiteSlug={ 'foo.bar' }
+						selectedFeature="fake-key"
+						purchaseId={ '1234abcd' }
+						performRedirectTo={ performRedirectTo }
+					>
+						<Redirector />
+					</Checkout>,
+					container
+				);
+			} );
+			expect( performRedirectTo ).toHaveBeenCalledWith( '/checkout/thank-you/foo.bar/1234abcd' );
+		} );
 	} );
 } );
